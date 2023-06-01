@@ -1,7 +1,10 @@
 import Button from '@components/Button';
 import Flexbox from '@components-layout/Flexbox';
+import { expect } from '@storybook/jest';
 import { ComponentStory, ComponentMeta } from '@storybook/react';
+import { queryByAttribute, fireEvent } from '@storybook/testing-library';
 import { MdCelebration } from 'react-icons/md';
+
 
 import Slider from '.';
 
@@ -123,10 +126,49 @@ const DEFAULT_PROPS = {
   defaultValue: 50,
 };
 
+const SLIDER_PREFIX = 'cds_Slider-slider';
+const TRACK_ID = `${SLIDER_PREFIX}-track`;
+const THUMB_ID = `${SLIDER_PREFIX}-thumb`;
+
+const getById = queryByAttribute.bind(null, 'id');
+
+const wait = (time: number) => {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+type MouseEvents = 'mouseDown' | 'mouseMove' | 'mouseUp';
+
+const simulateMouseEvents = async (element: HTMLElement, eventName: MouseEvents, options = {}) => {
+  fireEvent[eventName](element, options);
+  await wait(100);
+}
+
+const checkDraggedValue = async (target: HTMLElement, fromX: number, fromY: number, toX: number, toY: number, resultValue: string) => {  
+  await simulateMouseEvents(target, 'mouseDown', { clientX: fromX, clientY: fromY });
+  await simulateMouseEvents(target, 'mouseMove', { clientX: toX, clientY: toY });
+  await simulateMouseEvents(target, 'mouseUp');
+  expect(target.textContent).toEqual(resultValue);
+}
+
 const Template: ComponentStory<typeof Slider> = (args) => <Slider {...args} />;
 
 export const Default = Template.bind({});
 Default.args = { ...DEFAULT_PROPS };
+
+Default.play = async ({ canvasElement }) => {
+  const thumb = getById(canvasElement, THUMB_ID);
+  const track = getById(canvasElement, TRACK_ID);
+
+  if (thumb && track) {
+    const {x, y} = thumb.getBoundingClientRect();
+    const {left, right, y: track_y} = track.getBoundingClientRect();
+
+    // Click min value
+    await checkDraggedValue(thumb, x, y, left, track_y, '0');
+    // Click max value
+    await checkDraggedValue(thumb, x, y, right, track_y, '100');
+  }
+};
 
 export const OnlySlider = Template.bind({});
 OnlySlider.args = { ...DEFAULT_PROPS };
