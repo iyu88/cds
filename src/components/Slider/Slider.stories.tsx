@@ -181,7 +181,7 @@ Default.play = async ({ canvasElement }) => {
   const track = getById(canvasElement, TRACK_ID);
 
   if (!thumb || !track) return;
-    
+
   const {x, y} = thumb.getBoundingClientRect();
   const {left, right} = track.getBoundingClientRect();
 
@@ -228,6 +228,20 @@ StartFromZero.parameters = {
   },
 };
 
+StartFromZero.play = async ({ canvasElement }) => {
+  const thumb = getById(canvasElement, THUMB_ID);
+
+  if (!thumb) return;
+
+  // Decrease with left arrow
+  await assertKeyboardEvent(thumb, 'ArrowLeft', '0');
+  // Decrease with down arrow
+  await assertKeyboardEvent(thumb, 'ArrowDown', '0');
+
+  // Decrease with page down
+  await assertKeyboardEvent(thumb, 'PageDown', '0');
+};
+
 export const StartFromEnd = Template.bind({});
 StartFromEnd.args = { ...DEFAULT_PROPS, defaultValue: 100 };
 
@@ -235,6 +249,20 @@ StartFromEnd.parameters = {
   docs: {
     storyDescription: 'defaultValue을 max와 동일하게 설정합니다.',
   },
+};
+
+StartFromEnd.play = async ({ canvasElement }) => {
+  const thumb = getById(canvasElement, THUMB_ID);
+
+  if (!thumb) return;
+
+  // Increase with right arrow
+  await assertKeyboardEvent(thumb, 'ArrowRight', '100');
+  // Increase with up arrow
+  await assertKeyboardEvent(thumb, 'ArrowUp', '100');
+
+  // Increase with page up
+  await assertKeyboardEvent(thumb, 'PageUp', '100');
 };
 
 export const MinValueVariant = Template.bind({});
