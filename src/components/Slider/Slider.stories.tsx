@@ -150,6 +150,14 @@ const checkDraggedValue = async (target: HTMLElement, fromX: number, fromY: numb
   expect(target.textContent).toEqual(resultValue);
 }
 
+type KeyName = 'ArrowRight' | 'ArrowUp' | 'ArrowLeft' | 'ArrowDown';
+
+const checkTypedValue = async (target: HTMLElement, keyName: KeyName, resultValue: string) => {
+  await simulateEvents(target, 'keyDown', { key: keyName });
+  await simulateEvents(target, 'keyUp', { key: keyName });
+  expect(target.textContent).toEqual(resultValue);
+}
+
 const Template: ComponentStory<typeof Slider> = (args) => <Slider {...args} />;
 
 export const Default = Template.bind({});
@@ -162,6 +170,15 @@ Default.play = async ({ canvasElement }) => {
   if (thumb && track) {
     const {x, y} = thumb.getBoundingClientRect();
     const {left, right, y: track_y} = track.getBoundingClientRect();
+
+    // Increase with right arrow
+    await checkTypedValue(thumb, 'ArrowRight', '51');
+    // Increase with up arrow
+    await checkTypedValue(thumb, 'ArrowUp', '52');
+    // Decrease with left arrow
+    await checkTypedValue(thumb, 'ArrowLeft', '51');
+    // Decrease with down arrow
+    await checkTypedValue(thumb, 'ArrowDown', '50');
 
     // Click min value
     await checkDraggedValue(thumb, x, y, left, track_y, '0');
