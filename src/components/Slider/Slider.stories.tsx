@@ -132,8 +132,8 @@ const THUMB_ID = `${SLIDER_PREFIX}-thumb`;
 
 const getById = queryByAttribute.bind(null, 'id');
 
-const wait = (time: number) => {
-  return new Promise((resolve) => setTimeout(resolve, time));
+const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 type EventName = 
@@ -145,7 +145,7 @@ type EventName =
 
 const simulateEvents = async (element: HTMLElement, eventName: EventName, options = {}) => {
   fireEvent[eventName](element, options);
-  await wait(0);
+  await sleep(0);
 }
 
 const assertDragEvent = async (target: HTMLElement, fromX: number, fromY: number, toX: number, toY: number, expectedValue: string) => {  
