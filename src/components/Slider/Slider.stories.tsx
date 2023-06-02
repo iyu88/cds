@@ -180,33 +180,33 @@ Default.play = async ({ canvasElement }) => {
   const thumb = getById(canvasElement, THUMB_ID);
   const track = getById(canvasElement, TRACK_ID);
 
-  if (thumb && track) {
-    const {x, y} = thumb.getBoundingClientRect();
-    const {left, right} = track.getBoundingClientRect();
+  if (!thumb || !track) return;
+    
+  const {x, y} = thumb.getBoundingClientRect();
+  const {left, right} = track.getBoundingClientRect();
 
-    // Increase with right arrow
-    await assertKeyboardEvent(thumb, 'ArrowRight', '51');
-    // Increase with up arrow
-    await assertKeyboardEvent(thumb, 'ArrowUp', '52');
-    // Decrease with left arrow
-    await assertKeyboardEvent(thumb, 'ArrowLeft', '51');
-    // Decrease with down arrow
-    await assertKeyboardEvent(thumb, 'ArrowDown', '50');
+  // Increase with right arrow
+  await assertKeyboardEvent(thumb, 'ArrowRight', '51');
+  // Increase with up arrow
+  await assertKeyboardEvent(thumb, 'ArrowUp', '52');
+  // Decrease with left arrow
+  await assertKeyboardEvent(thumb, 'ArrowLeft', '51');
+  // Decrease with down arrow
+  await assertKeyboardEvent(thumb, 'ArrowDown', '50');
 
-    // Increase with page up
-    await assertKeyboardEvent(thumb, 'PageUp', '60');
-    // Decrease with page down
-    await assertKeyboardEvent(thumb, 'PageDown', '50');
-    // Set min with home key
-    await assertKeyboardEvent(thumb, 'Home', '0');
-    // Set max with end key
-    await assertKeyboardEvent(thumb, 'End', '100');
+  // Increase with page up
+  await assertKeyboardEvent(thumb, 'PageUp', '60');
+  // Decrease with page down
+  await assertKeyboardEvent(thumb, 'PageDown', '50');
+  // Set min with home key
+  await assertKeyboardEvent(thumb, 'Home', '0');
+  // Set max with end key
+  await assertKeyboardEvent(thumb, 'End', '100');
 
-    // Click min value
-    await assertDragEvent(thumb, x, y, left, y, '0');
-    // Click max value
-    await assertDragEvent(thumb, x, y, right, y, '100');
-  }
+  // Click min value
+  await assertDragEvent(thumb, x, y, left, y, '0');
+  // Click max value
+  await assertDragEvent(thumb, x, y, right, y, '100');
 };
 
 export const OnlySlider = Template.bind({});
