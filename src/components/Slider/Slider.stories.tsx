@@ -136,17 +136,17 @@ const wait = (time: number) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
-type MouseEvents = 'mouseDown' | 'mouseMove' | 'mouseUp';
+type EventName = 'mouseDown' | 'mouseMove' | 'mouseUp' | 'keyDown' | 'keyUp';
 
-const simulateMouseEvents = async (element: HTMLElement, eventName: MouseEvents, options = {}) => {
+const simulateEvents = async (element: HTMLElement, eventName: EventName, options = {}) => {
   fireEvent[eventName](element, options);
   await wait(100);
 }
 
 const checkDraggedValue = async (target: HTMLElement, fromX: number, fromY: number, toX: number, toY: number, resultValue: string) => {  
-  await simulateMouseEvents(target, 'mouseDown', { clientX: fromX, clientY: fromY });
-  await simulateMouseEvents(target, 'mouseMove', { clientX: toX, clientY: toY });
-  await simulateMouseEvents(target, 'mouseUp');
+  await simulateEvents(target, 'mouseDown', { clientX: fromX, clientY: fromY });
+  await simulateEvents(target, 'mouseMove', { clientX: toX, clientY: toY });
+  await simulateEvents(target, 'mouseUp');
   expect(target.textContent).toEqual(resultValue);
 }
 
