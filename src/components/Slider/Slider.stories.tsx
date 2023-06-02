@@ -136,11 +136,16 @@ const wait = (time: number) => {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
-type EventName = 'mouseDown' | 'mouseMove' | 'mouseUp' | 'keyDown' | 'keyUp';
+type EventName = 
+  'mouseDown' 
+  | 'mouseMove' 
+  | 'mouseUp' 
+  | 'keyDown' 
+  | 'keyUp';
 
 const simulateEvents = async (element: HTMLElement, eventName: EventName, options = {}) => {
   fireEvent[eventName](element, options);
-  await wait(100);
+  await wait(0);
 }
 
 const checkDraggedValue = async (target: HTMLElement, fromX: number, fromY: number, toX: number, toY: number, resultValue: string) => {  
@@ -150,7 +155,15 @@ const checkDraggedValue = async (target: HTMLElement, fromX: number, fromY: numb
   expect(target.textContent).toEqual(resultValue);
 }
 
-type KeyName = 'ArrowRight' | 'ArrowUp' | 'ArrowLeft' | 'ArrowDown';
+type KeyName = 
+  'ArrowRight' 
+  | 'ArrowUp' 
+  | 'ArrowLeft' 
+  | 'ArrowDown'
+  | 'PageUp' 
+  | 'PageDown' 
+  | 'Home' 
+  | 'End';
 
 const checkTypedValue = async (target: HTMLElement, keyName: KeyName, resultValue: string) => {
   await simulateEvents(target, 'keyDown', { key: keyName });
@@ -179,6 +192,15 @@ Default.play = async ({ canvasElement }) => {
     await checkTypedValue(thumb, 'ArrowLeft', '51');
     // Decrease with down arrow
     await checkTypedValue(thumb, 'ArrowDown', '50');
+
+    // Increase with page up
+    await checkTypedValue(thumb, 'PageUp', '60');
+    // Decrease with page down
+    await checkTypedValue(thumb, 'PageDown', '50');
+    // Set min with home key
+    await checkTypedValue(thumb, 'Home', '0');
+    // Set max with end key
+    await checkTypedValue(thumb, 'End', '100');
 
     // Click min value
     await checkDraggedValue(thumb, x, y, left, track_y, '0');
