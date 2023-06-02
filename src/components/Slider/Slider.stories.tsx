@@ -148,11 +148,11 @@ const simulateEvents = async (element: HTMLElement, eventName: EventName, option
   await wait(0);
 }
 
-const checkDraggedValue = async (target: HTMLElement, fromX: number, fromY: number, toX: number, toY: number, resultValue: string) => {  
+const assertDragEvent = async (target: HTMLElement, fromX: number, fromY: number, toX: number, toY: number, expectedValue: string) => {  
   await simulateEvents(target, 'mouseDown', { clientX: fromX, clientY: fromY });
   await simulateEvents(target, 'mouseMove', { clientX: toX, clientY: toY });
   await simulateEvents(target, 'mouseUp');
-  expect(target.textContent).toEqual(resultValue);
+  expect(target.textContent).toEqual(expectedValue);
 }
 
 type KeyName = 
@@ -203,9 +203,9 @@ Default.play = async ({ canvasElement }) => {
     await checkTypedValue(thumb, 'End', '100');
 
     // Click min value
-    await checkDraggedValue(thumb, x, y, left, y, '0');
+    await assertDragEvent(thumb, x, y, left, y, '0');
     // Click max value
-    await checkDraggedValue(thumb, x, y, right, y, '100');
+    await assertDragEvent(thumb, x, y, right, y, '100');
   }
 };
 
