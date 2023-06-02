@@ -274,6 +274,39 @@ MinValueVariant.parameters = {
   },
 };
 
+MinValueVariant.play = async ({ canvasElement }) => {
+  const thumb = getById(canvasElement, THUMB_ID);
+  const track = getById(canvasElement, TRACK_ID);
+
+  if (!thumb || !track) return;
+
+  const {x, y} = thumb.getBoundingClientRect();
+  const {left, right} = track.getBoundingClientRect();
+
+  // Increase with right arrow
+  await assertKeyboardEvent(thumb, 'ArrowRight', '76');
+  // Increase with up arrow
+  await assertKeyboardEvent(thumb, 'ArrowUp', '77');
+  // Decrease with left arrow
+  await assertKeyboardEvent(thumb, 'ArrowLeft', '76');
+  // Decrease with down arrow
+  await assertKeyboardEvent(thumb, 'ArrowDown', '75');
+
+  // Increase with page up
+  await assertKeyboardEvent(thumb, 'PageUp', '80');
+  // Decrease with page down
+  await assertKeyboardEvent(thumb, 'PageDown', '75');
+  // Set min with home key
+  await assertKeyboardEvent(thumb, 'Home', '50');
+  // Set max with end key
+  await assertKeyboardEvent(thumb, 'End', '100');
+
+  // Click min value
+  await assertDragEvent(thumb, x, y, left, y, '50');
+  // Click max value
+  await assertDragEvent(thumb, x, y, right, y, '100');
+};
+
 export const MaxValueVariant = Template.bind({});
 MaxValueVariant.args = {
   label: DEFAULT_LABEL,
@@ -286,6 +319,39 @@ MaxValueVariant.parameters = {
   docs: {
     storyDescription: '최대값을 100이 아닌 값으로 설정할 수 있습니다.',
   },
+};
+
+MaxValueVariant.play = async ({ canvasElement }) => {
+  const thumb = getById(canvasElement, THUMB_ID);
+  const track = getById(canvasElement, TRACK_ID);
+
+  if (!thumb || !track) return;
+
+  const {x, y} = thumb.getBoundingClientRect();
+  const {left, right} = track.getBoundingClientRect();
+
+  // Increase with right arrow
+  await assertKeyboardEvent(thumb, 'ArrowRight', '101');
+  // Increase with up arrow
+  await assertKeyboardEvent(thumb, 'ArrowUp', '102');
+  // Decrease with left arrow
+  await assertKeyboardEvent(thumb, 'ArrowLeft', '101');
+  // Decrease with down arrow
+  await assertKeyboardEvent(thumb, 'ArrowDown', '100');
+
+  // Increase with page up
+  await assertKeyboardEvent(thumb, 'PageUp', '115');
+  // Decrease with page down
+  await assertKeyboardEvent(thumb, 'PageDown', '100');
+  // Set min with home key
+  await assertKeyboardEvent(thumb, 'Home', '50');
+  // Set max with end key
+  await assertKeyboardEvent(thumb, 'End', '200');
+
+  // Click min value
+  await assertDragEvent(thumb, x, y, left, y, '50');
+  // Click max value
+  await assertDragEvent(thumb, x, y, right, y, '200');
 };
 
 export const SizeVariant = Template.bind({});
