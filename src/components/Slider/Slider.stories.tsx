@@ -165,10 +165,10 @@ type KeyName =
   | 'Home' 
   | 'End';
 
-const checkTypedValue = async (target: HTMLElement, keyName: KeyName, resultValue: string) => {
+const assertKeyboardEvent = async (target: HTMLElement, keyName: KeyName, expectedValue: string) => {
   await simulateEvents(target, 'keyDown', { key: keyName });
   await simulateEvents(target, 'keyUp', { key: keyName });
-  expect(target.textContent).toEqual(resultValue);
+  expect(target.textContent).toEqual(expectedValue);
 }
 
 const Template: ComponentStory<typeof Slider> = (args) => <Slider {...args} />;
@@ -185,22 +185,22 @@ Default.play = async ({ canvasElement }) => {
     const {left, right} = track.getBoundingClientRect();
 
     // Increase with right arrow
-    await checkTypedValue(thumb, 'ArrowRight', '51');
+    await assertKeyboardEvent(thumb, 'ArrowRight', '51');
     // Increase with up arrow
-    await checkTypedValue(thumb, 'ArrowUp', '52');
+    await assertKeyboardEvent(thumb, 'ArrowUp', '52');
     // Decrease with left arrow
-    await checkTypedValue(thumb, 'ArrowLeft', '51');
+    await assertKeyboardEvent(thumb, 'ArrowLeft', '51');
     // Decrease with down arrow
-    await checkTypedValue(thumb, 'ArrowDown', '50');
+    await assertKeyboardEvent(thumb, 'ArrowDown', '50');
 
     // Increase with page up
-    await checkTypedValue(thumb, 'PageUp', '60');
+    await assertKeyboardEvent(thumb, 'PageUp', '60');
     // Decrease with page down
-    await checkTypedValue(thumb, 'PageDown', '50');
+    await assertKeyboardEvent(thumb, 'PageDown', '50');
     // Set min with home key
-    await checkTypedValue(thumb, 'Home', '0');
+    await assertKeyboardEvent(thumb, 'Home', '0');
     // Set max with end key
-    await checkTypedValue(thumb, 'End', '100');
+    await assertKeyboardEvent(thumb, 'End', '100');
 
     // Click min value
     await assertDragEvent(thumb, x, y, left, y, '0');
