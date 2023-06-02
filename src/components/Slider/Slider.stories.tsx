@@ -373,6 +373,21 @@ WithStep10.parameters = {
   },
 };
 
+WithStep10.play = async ({ canvasElement }) => {
+  const thumb = getById(canvasElement, THUMB_ID);
+
+  if (!thumb ) return;
+
+  // Increase with right arrow
+  await assertKeyboardEvent(thumb, 'ArrowRight', '60');
+  // Increase with up arrow
+  await assertKeyboardEvent(thumb, 'ArrowUp', '70');
+  // Decrease with left arrow
+  await assertKeyboardEvent(thumb, 'ArrowLeft', '60');
+  // Decrease with down arrow
+  await assertKeyboardEvent(thumb, 'ArrowDown', '50');
+};
+
 export const WithStep20 = Template.bind({});
 WithStep20.args = { ...DEFAULT_PROPS, step: 20 };
 
@@ -381,6 +396,21 @@ WithStep20.parameters = {
     storyDescription:
       'step 속성을 20으로 설정하여 <Slider.Thumb>가 1회 이동할 때 \\<Slider> 값이 20씩 변경됩니다.',
   },
+};
+
+WithStep20.play = async ({ canvasElement }) => {
+  const thumb = getById(canvasElement, THUMB_ID);
+
+  if (!thumb ) return;
+
+  // Increase with right arrow
+  await assertKeyboardEvent(thumb, 'ArrowRight', '70');
+  // Increase with up arrow
+  await assertKeyboardEvent(thumb, 'ArrowUp', '90');
+  // Decrease with left arrow
+  await assertKeyboardEvent(thumb, 'ArrowLeft', '70');
+  // Decrease with down arrow
+  await assertKeyboardEvent(thumb, 'ArrowDown', '50');
 };
 
 export const WithVerticalOrientation = Template.bind({});
