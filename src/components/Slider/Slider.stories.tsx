@@ -182,7 +182,7 @@ Default.play = async ({ canvasElement }) => {
 
   if (thumb && track) {
     const {x, y} = thumb.getBoundingClientRect();
-    const {left, right, y: track_y} = track.getBoundingClientRect();
+    const {left, right} = track.getBoundingClientRect();
 
     // Increase with right arrow
     await checkTypedValue(thumb, 'ArrowRight', '51');
@@ -203,9 +203,9 @@ Default.play = async ({ canvasElement }) => {
     await checkTypedValue(thumb, 'End', '100');
 
     // Click min value
-    await checkDraggedValue(thumb, x, y, left, track_y, '0');
+    await checkDraggedValue(thumb, x, y, left, y, '0');
     // Click max value
-    await checkDraggedValue(thumb, x, y, right, track_y, '100');
+    await checkDraggedValue(thumb, x, y, right, y, '100');
   }
 };
 
