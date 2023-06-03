@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import Flexbox from '@components-layout/Flexbox';
 import { expect } from '@storybook/jest';
 import { ComponentStory, ComponentMeta } from '@storybook/react';
-import { queryByAttribute, fireEvent } from '@storybook/testing-library';
+import { queryByAttribute, fireEvent, waitFor } from '@storybook/testing-library';
 import { MdCelebration } from 'react-icons/md';
 
 
@@ -130,29 +130,10 @@ const SLIDER_PREFIX = 'cds_Slider-slider';
 const TRACK_ID = `${SLIDER_PREFIX}-track`;
 const THUMB_ID = `${SLIDER_PREFIX}-thumb`;
 
-const getById = queryByAttribute.bind(null, 'id');
-
-const sleep = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-type EventName = 
-  'mouseDown' 
-  | 'mouseMove' 
-  | 'mouseUp' 
-  | 'keyDown' 
-  | 'keyUp';
-
-const simulateEvents = async (element: HTMLElement, eventName: EventName, options = {}) => {
-  fireEvent[eventName](element, options);
-  await sleep(0);
-}
-
-const assertDragEvent = async (target: HTMLElement, fromX: number, fromY: number, toX: number, toY: number, expectedValue: string) => {  
-  await simulateEvents(target, 'mouseDown', { clientX: fromX, clientY: fromY });
-  await simulateEvents(target, 'mouseMove', { clientX: toX, clientY: toY });
-  await simulateEvents(target, 'mouseUp');
-  expect(target.textContent).toEqual(expectedValue);
+const simulateDragEvent = async (target: HTMLElement, fromX: number, fromY: number, toX: number, toY: number) => {  
+  await fireEvent.mouseDown(target, { clientX: fromX, clientY: fromY });
+  await fireEvent.mouseMove(target, { clientX: toX, clientY: toY });
+  await fireEvent.mouseUp(target);
 }
 
 type KeyName = 
@@ -161,14 +142,13 @@ type KeyName =
   | 'ArrowLeft' 
   | 'ArrowDown'
   | 'PageUp' 
-  | 'PageDown' 
+  | 'PageDown'
   | 'Home' 
   | 'End';
 
-const assertKeyboardEvent = async (target: HTMLElement, keyName: KeyName, expectedValue: string) => {
-  await simulateEvents(target, 'keyDown', { key: keyName });
-  await simulateEvents(target, 'keyUp', { key: keyName });
-  expect(target.textContent).toEqual(expectedValue);
+const simulateKeyboardEvent = async (target: HTMLElement, key: KeyName) => {
+  await fireEvent.keyDown(target, { key });
+  await fireEvent.keyUp(target, { key });
 }
 
 const Template: ComponentStory<typeof Slider> = (args) => <Slider {...args} />;
@@ -177,36 +157,53 @@ export const Default = Template.bind({});
 Default.args = { ...DEFAULT_PROPS };
 
 Default.play = async ({ canvasElement }) => {
-  const thumb = getById(canvasElement, THUMB_ID);
-  const track = getById(canvasElement, TRACK_ID);
+  const thumb = queryByAttribute('id', canvasElement, THUMB_ID);
+  const track = queryByAttribute('id', canvasElement, TRACK_ID);
 
   if (!thumb || !track) return;
 
-  const {x, y} = thumb.getBoundingClientRect();
-  const {left, right} = track.getBoundingClientRect();
+  const { x, y } = thumb.getBoundingClientRect();
+  const { left, right } = track.getBoundingClientRect();
 
   // Increase with right arrow
-  await assertKeyboardEvent(thumb, 'ArrowRight', '51');
+  await simulateKeyboardEvent(thumb, 'ArrowRight');
+  await waitFor(() => expect(thumb.textContent).toEqual('51'));
+
   // Increase with up arrow
-  await assertKeyboardEvent(thumb, 'ArrowUp', '52');
+  await simulateKeyboardEvent(thumb, 'ArrowUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('52'));
+
   // Decrease with left arrow
-  await assertKeyboardEvent(thumb, 'ArrowLeft', '51');
+  await simulateKeyboardEvent(thumb, 'ArrowLeft');
+  await waitFor(() => expect(thumb.textContent).toEqual('51'));
+
   // Decrease with down arrow
-  await assertKeyboardEvent(thumb, 'ArrowDown', '50');
+  await simulateKeyboardEvent(thumb, 'ArrowDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
 
   // Increase with page up
-  await assertKeyboardEvent(thumb, 'PageUp', '60');
-  // Decrease with page down
-  await assertKeyboardEvent(thumb, 'PageDown', '50');
-  // Set min with home key
-  await assertKeyboardEvent(thumb, 'Home', '0');
-  // Set max with end key
-  await assertKeyboardEvent(thumb, 'End', '100');
+  await simulateKeyboardEvent(thumb, 'PageUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('60'));
 
-  // Click min value
-  await assertDragEvent(thumb, x, y, left, y, '0');
-  // Click max value
-  await assertDragEvent(thumb, x, y, right, y, '100');
+  // Decrease with page down
+  await simulateKeyboardEvent(thumb, 'PageDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
+
+  // Set min with home key
+  await simulateKeyboardEvent(thumb, 'Home');
+  await waitFor(() => expect(thumb.textContent).toEqual('0'));
+
+  // Set max with end key
+  await simulateKeyboardEvent(thumb, 'End');
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
+
+  // Drag min value
+  await simulateDragEvent(thumb, x, y, left, y);
+  await waitFor(() => expect(thumb.textContent).toEqual('0'));
+
+  // Drag max value
+  await simulateDragEvent(thumb, x, y, right, y);
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
 };
 
 export const OnlySlider = Template.bind({});
@@ -229,17 +226,21 @@ StartFromZero.parameters = {
 };
 
 StartFromZero.play = async ({ canvasElement }) => {
-  const thumb = getById(canvasElement, THUMB_ID);
+  const thumb = queryByAttribute('id', canvasElement, THUMB_ID);
 
   if (!thumb) return;
 
   // Decrease with left arrow
-  await assertKeyboardEvent(thumb, 'ArrowLeft', '0');
+  await simulateKeyboardEvent(thumb, 'ArrowLeft');
+  await waitFor(() => expect(thumb.textContent).toEqual('0'));
+
   // Decrease with down arrow
-  await assertKeyboardEvent(thumb, 'ArrowDown', '0');
+  await simulateKeyboardEvent(thumb, 'ArrowDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('0'));
 
   // Decrease with page down
-  await assertKeyboardEvent(thumb, 'PageDown', '0');
+  await simulateKeyboardEvent(thumb, 'PageDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('0'));
 };
 
 export const StartFromEnd = Template.bind({});
@@ -252,17 +253,21 @@ StartFromEnd.parameters = {
 };
 
 StartFromEnd.play = async ({ canvasElement }) => {
-  const thumb = getById(canvasElement, THUMB_ID);
+  const thumb = queryByAttribute('id', canvasElement, THUMB_ID);
 
   if (!thumb) return;
 
   // Increase with right arrow
-  await assertKeyboardEvent(thumb, 'ArrowRight', '100');
+  await simulateKeyboardEvent(thumb, 'ArrowRight');
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
+
   // Increase with up arrow
-  await assertKeyboardEvent(thumb, 'ArrowUp', '100');
+  await simulateKeyboardEvent(thumb, 'ArrowUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
 
   // Increase with page up
-  await assertKeyboardEvent(thumb, 'PageUp', '100');
+  await simulateKeyboardEvent(thumb, 'PageUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
 };
 
 export const MinValueVariant = Template.bind({});
@@ -275,36 +280,53 @@ MinValueVariant.parameters = {
 };
 
 MinValueVariant.play = async ({ canvasElement }) => {
-  const thumb = getById(canvasElement, THUMB_ID);
-  const track = getById(canvasElement, TRACK_ID);
+  const thumb = queryByAttribute('id', canvasElement, THUMB_ID);
+  const track = queryByAttribute('id', canvasElement, TRACK_ID);
 
   if (!thumb || !track) return;
 
-  const {x, y} = thumb.getBoundingClientRect();
-  const {left, right} = track.getBoundingClientRect();
+  const { x, y } = thumb.getBoundingClientRect();
+  const { left, right } = track.getBoundingClientRect();
 
   // Increase with right arrow
-  await assertKeyboardEvent(thumb, 'ArrowRight', '76');
+  await simulateKeyboardEvent(thumb, 'ArrowRight');
+  await waitFor(() => expect(thumb.textContent).toEqual('76'));
+
   // Increase with up arrow
-  await assertKeyboardEvent(thumb, 'ArrowUp', '77');
+  await simulateKeyboardEvent(thumb, 'ArrowUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('77'));
+
   // Decrease with left arrow
-  await assertKeyboardEvent(thumb, 'ArrowLeft', '76');
+  await simulateKeyboardEvent(thumb, 'ArrowLeft');
+  await waitFor(() => expect(thumb.textContent).toEqual('76'));
+
   // Decrease with down arrow
-  await assertKeyboardEvent(thumb, 'ArrowDown', '75');
+  await simulateKeyboardEvent(thumb, 'ArrowDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('75'));
 
   // Increase with page up
-  await assertKeyboardEvent(thumb, 'PageUp', '80');
-  // Decrease with page down
-  await assertKeyboardEvent(thumb, 'PageDown', '75');
-  // Set min with home key
-  await assertKeyboardEvent(thumb, 'Home', '50');
-  // Set max with end key
-  await assertKeyboardEvent(thumb, 'End', '100');
+  await simulateKeyboardEvent(thumb, 'PageUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('80'));
 
-  // Click min value
-  await assertDragEvent(thumb, x, y, left, y, '50');
-  // Click max value
-  await assertDragEvent(thumb, x, y, right, y, '100');
+  // Decrease with page down
+  await simulateKeyboardEvent(thumb, 'PageDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('75'));
+
+  // Set min with home key
+  await simulateKeyboardEvent(thumb, 'Home');
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
+
+  // Set max with end key
+  await simulateKeyboardEvent(thumb, 'End');
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
+
+  // Drag min value
+  await simulateDragEvent(thumb, x, y, left, y);
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
+
+  // Drag max value
+  await simulateDragEvent(thumb, x, y, right, y);
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
 };
 
 export const MaxValueVariant = Template.bind({});
@@ -322,36 +344,53 @@ MaxValueVariant.parameters = {
 };
 
 MaxValueVariant.play = async ({ canvasElement }) => {
-  const thumb = getById(canvasElement, THUMB_ID);
-  const track = getById(canvasElement, TRACK_ID);
+  const thumb = queryByAttribute('id', canvasElement, THUMB_ID);
+  const track = queryByAttribute('id', canvasElement, TRACK_ID);
 
   if (!thumb || !track) return;
 
-  const {x, y} = thumb.getBoundingClientRect();
-  const {left, right} = track.getBoundingClientRect();
+  const { x, y } = thumb.getBoundingClientRect();
+  const { left, right } = track.getBoundingClientRect();
 
   // Increase with right arrow
-  await assertKeyboardEvent(thumb, 'ArrowRight', '101');
+  await simulateKeyboardEvent(thumb, 'ArrowRight');
+  await waitFor(() => expect(thumb.textContent).toEqual('101'));
+
   // Increase with up arrow
-  await assertKeyboardEvent(thumb, 'ArrowUp', '102');
+  await simulateKeyboardEvent(thumb, 'ArrowUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('102'));
+
   // Decrease with left arrow
-  await assertKeyboardEvent(thumb, 'ArrowLeft', '101');
+  await simulateKeyboardEvent(thumb, 'ArrowLeft');
+  await waitFor(() => expect(thumb.textContent).toEqual('101'));
+
   // Decrease with down arrow
-  await assertKeyboardEvent(thumb, 'ArrowDown', '100');
+  await simulateKeyboardEvent(thumb, 'ArrowDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
 
   // Increase with page up
-  await assertKeyboardEvent(thumb, 'PageUp', '115');
-  // Decrease with page down
-  await assertKeyboardEvent(thumb, 'PageDown', '100');
-  // Set min with home key
-  await assertKeyboardEvent(thumb, 'Home', '50');
-  // Set max with end key
-  await assertKeyboardEvent(thumb, 'End', '200');
+  await simulateKeyboardEvent(thumb, 'PageUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('115'));
 
-  // Click min value
-  await assertDragEvent(thumb, x, y, left, y, '50');
-  // Click max value
-  await assertDragEvent(thumb, x, y, right, y, '200');
+  // Decrease with page down
+  await simulateKeyboardEvent(thumb, 'PageDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
+
+  // Set min with home key
+  await simulateKeyboardEvent(thumb, 'Home');
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
+
+  // Set max with end key
+  await simulateKeyboardEvent(thumb, 'End');
+  await waitFor(() => expect(thumb.textContent).toEqual('200'));
+
+  // Drag min value
+  await simulateDragEvent(thumb, x, y, left, y);
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
+
+  // Drag max value
+  await simulateDragEvent(thumb, x, y, right, y);
+  await waitFor(() => expect(thumb.textContent).toEqual('200'));
 };
 
 export const SizeVariant = Template.bind({});
@@ -374,18 +413,25 @@ WithStep10.parameters = {
 };
 
 WithStep10.play = async ({ canvasElement }) => {
-  const thumb = getById(canvasElement, THUMB_ID);
+  const thumb = queryByAttribute('id', canvasElement, THUMB_ID);
 
   if (!thumb ) return;
 
   // Increase with right arrow
-  await assertKeyboardEvent(thumb, 'ArrowRight', '60');
+  await simulateKeyboardEvent(thumb, 'ArrowRight');
+  await waitFor(() => expect(thumb.textContent).toEqual('60'));
+
   // Increase with up arrow
-  await assertKeyboardEvent(thumb, 'ArrowUp', '70');
+  await simulateKeyboardEvent(thumb, 'ArrowUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('70'));
+
   // Decrease with left arrow
-  await assertKeyboardEvent(thumb, 'ArrowLeft', '60');
+  await simulateKeyboardEvent(thumb, 'ArrowLeft');
+  await waitFor(() => expect(thumb.textContent).toEqual('60'));
+
   // Decrease with down arrow
-  await assertKeyboardEvent(thumb, 'ArrowDown', '50');
+  await simulateKeyboardEvent(thumb, 'ArrowDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
 };
 
 export const WithStep20 = Template.bind({});
@@ -399,18 +445,25 @@ WithStep20.parameters = {
 };
 
 WithStep20.play = async ({ canvasElement }) => {
-  const thumb = getById(canvasElement, THUMB_ID);
+  const thumb = queryByAttribute('id', canvasElement, THUMB_ID);
 
   if (!thumb ) return;
 
   // Increase with right arrow
-  await assertKeyboardEvent(thumb, 'ArrowRight', '70');
+  await simulateKeyboardEvent(thumb, 'ArrowRight');
+  await waitFor(() => expect(thumb.textContent).toEqual('70'));
+
   // Increase with up arrow
-  await assertKeyboardEvent(thumb, 'ArrowUp', '90');
+  await simulateKeyboardEvent(thumb, 'ArrowUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('90'));
+
   // Decrease with left arrow
-  await assertKeyboardEvent(thumb, 'ArrowLeft', '70');
+  await simulateKeyboardEvent(thumb, 'ArrowLeft');
+  await waitFor(() => expect(thumb.textContent).toEqual('70'));
+
   // Decrease with down arrow
-  await assertKeyboardEvent(thumb, 'ArrowDown', '50');
+  await simulateKeyboardEvent(thumb, 'ArrowDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
 };
 
 export const WithVerticalOrientation = Template.bind({});
@@ -424,36 +477,53 @@ WithVerticalOrientation.parameters = {
 };
 
 WithVerticalOrientation.play = async ({ canvasElement }) => {
-  const thumb = getById(canvasElement, THUMB_ID);
-  const track = getById(canvasElement, TRACK_ID);
+  const thumb = queryByAttribute('id', canvasElement, THUMB_ID);
+  const track = queryByAttribute('id', canvasElement, TRACK_ID);
 
   if (!thumb || !track) return;
 
-  const {x, y} = thumb.getBoundingClientRect();
-  const {bottom, top} = track.getBoundingClientRect();
+  const { x, y } = thumb.getBoundingClientRect();
+  const { bottom, top } = track.getBoundingClientRect();
 
   // Increase with right arrow
-  await assertKeyboardEvent(thumb, 'ArrowRight', '51');
+  await simulateKeyboardEvent(thumb, 'ArrowRight');
+  await waitFor(() => expect(thumb.textContent).toEqual('51'));
+
   // Increase with up arrow
-  await assertKeyboardEvent(thumb, 'ArrowUp', '52');
+  await simulateKeyboardEvent(thumb, 'ArrowUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('52'));
+
   // Decrease with left arrow
-  await assertKeyboardEvent(thumb, 'ArrowLeft', '51');
+  await simulateKeyboardEvent(thumb, 'ArrowLeft');
+  await waitFor(() => expect(thumb.textContent).toEqual('51'));
+
   // Decrease with down arrow
-  await assertKeyboardEvent(thumb, 'ArrowDown', '50');
+  await simulateKeyboardEvent(thumb, 'ArrowDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
 
   // Increase with page up
-  await assertKeyboardEvent(thumb, 'PageUp', '60');
-  // Decrease with page down
-  await assertKeyboardEvent(thumb, 'PageDown', '50');
-  // Set min with home key
-  await assertKeyboardEvent(thumb, 'Home', '0');
-  // Set max with end key
-  await assertKeyboardEvent(thumb, 'End', '100');
+  await simulateKeyboardEvent(thumb, 'PageUp');
+  await waitFor(() => expect(thumb.textContent).toEqual('60'));
 
-  // Click min value
-  await assertDragEvent(thumb, x, y, x, bottom, '0');
-  // Click max value
-  await assertDragEvent(thumb, x, y, x, top, '100');
+  // Decrease with page down
+  await simulateKeyboardEvent(thumb, 'PageDown');
+  await waitFor(() => expect(thumb.textContent).toEqual('50'));
+
+  // Set min with home key
+  await simulateKeyboardEvent(thumb, 'Home');
+  await waitFor(() => expect(thumb.textContent).toEqual('0'));
+
+  // Set max with end key
+  await simulateKeyboardEvent(thumb, 'End');
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
+
+  // Drag min value
+  await simulateDragEvent(thumb, x, y, x, bottom);
+  await waitFor(() => expect(thumb.textContent).toEqual('0'));
+
+  // Drag max value
+  await simulateDragEvent(thumb, x, y, x, top);
+  await waitFor(() => expect(thumb.textContent).toEqual('100'));
 };
 
 const ColorTemplate: ComponentStory<typeof Slider> = (args) => (
